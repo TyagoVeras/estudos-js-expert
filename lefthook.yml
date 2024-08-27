@@ -18,13 +18,16 @@ pre-push:
     update-develop:
       run: |
         if ! git rev-parse --verify develop >/dev/null 2>&1; then
-          echo "Error: A branch 'develop' não existe."
-          exit 1
-        fi
-
-        if ! git checkout develop; then
-          echo "Error: Não foi possível fazer checkout na branch 'develop'."
-          exit 1
+          echo "A branch 'develop' não existe. Criando a branch 'develop'..."
+          if ! git checkout -b develop; then
+            echo "Error: Não foi possível criar a branch 'develop'."
+            exit 1
+          fi
+        else
+          if ! git checkout develop; then
+            echo "Error: Não foi possível fazer checkout na branch 'develop'."
+            exit 1
+          fi
         fi
 
         if ! git pull origin develop; then

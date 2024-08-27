@@ -1,0 +1,89 @@
+# EXAMPLE USAGE:
+#
+#   Refer for explanation to following link:
+#   https://github.com/evilmartians/lefthook/blob/master/docs/configuration.md
+#
+pre-push:
+  parallel: false
+  commands:
+    check-branch:
+      run: |
+        GREEN='\033[0;32m'
+        RED='\033[0;31m'
+        END_COLOR='\033[0m'
+        ORANGE='\033[0;33m'
+
+        # Obtém o nome da branch atual
+        current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+        # Verifica se a branch atual está na whitelist
+        SWHITELIST_BRANCHES=("release" "master" "main")
+        if [[ " ${SWHITELIST_BRANCHES[@]} " =~ " ${current_branch} " ]]; then
+          echo "${RED} ⛔ Você não pode fazer push para a branch $current_branch${END_COLOR}"
+          exit 1
+        fi
+
+    update-develop:
+      run: |
+        GREEN='\033[0;32m'
+        RED='\033[0;31m'
+        END_COLOR='\033[0m'
+        ORANGE='\033[0;33m'
+
+        # Atualiza a branch develop local
+        echo "${GREEN} 👀 Fazendo checkout na branch develop${END_COLOR}"
+        CHECKOUT_MSG=$(git checkout develop 2>&1)
+        echo "${ORANGE} 🔄 Run git checkout develop: $CHECKOUT_MSG ${END_COLOR}"
+        if [ $? -ne 0 ]; then
+          echo "${RED} ⛔ Não foi possível fazer o checkout na branch develop${END_COLOR}"
+          exit 1
+        else
+          echo "${GREEN} ✅ Checkout na branch develop feito com sucesso${END_COLOR}"
+        fi
+
+        CHECKOUT_MSG=$(git pull origin develop 2>&1)
+        echo "${ORANGE} 🔄 Run git pull origin develop: $CHECKOUT_MSG ${END_COLOR}"
+        if [ $? -ne 0 ]; then
+          echo "${RED} ⛔ Não foi possível atualizar a branch develop${END_COLOR}"
+          exit 1
+        elif [[ $CHECKOUT_MSG == *"Already up"* ]]; then
+          echo "${RED} 🚨 A branch local de develop já está atualizada${END_COLOR}"
+        else
+          echo "${GREEN} ✅ Atualização da branch develop feita com sucesso${END_COLOR}"
+        fi
+
+    merge-develop:
+      run: |
+        GREEN='\033[0;32m'
+        RED='\033[0;31m'
+        END_COLOR='\033[0m'
+        ORANGE='\033[0;33m'
+
+        # Volta para a branch atual e faz o merge
+        echo "${GREEN} 👀 Voltando para a branch atual${END_COLOR}"
+        CHECKOUT_MSG=$(git checkout $current_branch 2>&1)
+        echo "${ORANGE} 🔄 Run git checkout $current_branch: $CHECKOUT_MSG ${END_COLOR}"
+        if [ $? -ne 0 ]; then
+          echo "${RED} ⛔ Não foi possível voltar para a branch atual${END_COLOR}"
+          exit 1
+        else
+          echo "${GREEN} ✅ Checkout na branch atual feito com sucesso${END_COLOR}"
+        fi
+
+        echo "${GREEN} 👀 Fazendo merge da branch develop com a branch atual${END_COLOR}"
+        CHECKOUT_MSG=$(git merge --no-ff --no-edit develop 2>&1)
+        echo "${ORANGE} 🔄 Run git merge --no-ff --no-edit develop: $CHECKOUT_MSG ${END_COLOR}"
+        if [ $? -ne 0 ]; then
+          echo "${RED} ⛔ Não foi possível fazer o merge com a branch atual${END_COLOR}"
+          exit 1
+        else
+          echo "${GREEN} ✅ Merge com a branch atual feito com sucesso${END_COLOR}"
+        fi
+
+
+pre-commit:
+  parallel: true
+  commands:
+    tsc:
+      tags: ci
+      run: echo "tsc"

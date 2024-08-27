@@ -94,4 +94,30 @@ pre-commit:
   commands:
     tsc:
       tags: ci
-      run: echo "Executando tsc..."
+      run: |
+        echo "Executando verificação TypeScript..."
+        if ! npx tsc --noEmit; then
+          echo "Error: Erros de compilação encontrados pelo TypeScript. Corrija-os antes de continuar."
+          exit 1
+        fi
+        echo "Nenhum erro TypeScript encontrado."
+
+    eslint:
+      tags: ci
+      run: |
+        echo "Executando verificação ESLint..."
+        if ! npm run lint; then
+          echo "Error: Erros de linting encontrados. Corrija-os antes de continuar."
+          exit 1
+        fi
+        echo "Nenhum erro de linting encontrado."
+
+    test:lefthook:
+      tags: ci
+      run: |
+        echo "Executando testes..."
+        if ! npm run test:lefthook; then
+          echo "Error: Testes falharam. Verifique os erros e corrija antes de continuar."
+          exit 1
+        fi
+        echo "Todos os testes passaram com sucesso."

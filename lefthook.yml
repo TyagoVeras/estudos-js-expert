@@ -11,18 +11,39 @@ pre-push:
         current_branch=$(git rev-parse --abbrev-ref HEAD)
         SWHITELIST_BRANCHES=("release" "master" "main")
         if [[ " ${SWHITELIST_BRANCHES[@]} " =~ " ${current_branch} " ]]; then
+          echo "Error: Push para a branch '${current_branch}' não é permitido."
           exit 1
         fi
 
     update-develop:
       run: |
-        git checkout develop || exit 1
-        git pull origin develop || exit 1
+        if ! git rev-parse --verify develop >/dev/null 2>&1; then
+          echo "Error: A branch 'develop' não existe."
+          exit 1
+        fi
+
+        if ! git checkout develop; then
+          echo "Error: Não foi possível fazer checkout na branch 'develop'."
+          exit 1
+        fi
+
+        if ! git pull origin develop; then
+          echo "Error: Não foi possível atualizar a branch 'develop' com a remota."
+          exit 1
+        fi
 
     merge-develop:
       run: |
-        git checkout $current_branch || exit 1
-        git merge --no-ff --no-edit develop || exit 1
+        if ! git checkout $current_branch; then
+          echo "Error: Não foi possível voltar para a branch atual '${current_branch}'."
+          exit 1
+        fi
+
+        if ! git merge --no-ff --no-edit develop; then
+          echo "Error: Não foi possível realizar o merge da branch 'develop' na branch '${current_branch}'."
+          exit 1
+        fi
+
 
 
 pre-commit:

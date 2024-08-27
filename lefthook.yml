@@ -1,5 +1,5 @@
 pre-push:
-  parallel: true
+  parallel: false
   commands:
     check-branch:
       run: |
@@ -61,18 +61,19 @@ pre-push:
     push-current-branch:
       run: |
         current_branch=$(git rev-parse --abbrev-ref HEAD)
-        if ! git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1; then
-          echo "A branch '${current_branch}' não tem um upstream configurado. Configurando upstream..."
+        if ! git rev-parse --verify origin/$current_branch >/dev/null 2>&1; then
+          echo "A branch '$current_branch' não existe no repositório remoto. Criando a branch '$current_branch'..."
           if ! git push --set-upstream origin $current_branch; then
-            echo "Error: Não foi possível fazer push da branch '${current_branch}' para o repositório remoto."
+            echo "Error: Não foi possível criar a branch '$current_branch' no repositório remoto."
             exit 1
           fi
         else
           if ! git push; then
-            echo "Error: Não foi possível fazer push da branch '${current_branch}' para o repositório remoto."
+            echo "Error: Não foi possível fazer push da branch '$current_branch' para o repositório remoto."
             exit 1
           fi
         fi
+
 
 pre-commit:
   parallel: true

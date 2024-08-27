@@ -118,4 +118,4 @@ pre-commit:
           echo "Error: Testes falharam. Verifique os erros e corrija antes de continuar."
           exit 1
         fi
-        echo "Todos os testes passaram com sucesso."
+        echo "Todos os testes passaram com sucesso.s"

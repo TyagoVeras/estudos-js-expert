@@ -1,24 +1,28 @@
 pre-push:
   parallel: false
+  
   commands:
     check-branch:
       run: |
         current_branch=$(git rev-parse --abbrev-ref HEAD)
         SWHITELIST_BRANCHES=("release" "master" "main")
         if [[ " ${SWHITELIST_BRANCHES[@]} " =~ " ${current_branch} " ]]; then
-          echo "Error: Push para a branch '${current_branch}' não é permitido."
+          echo "Error: Push para a branch '${current_branch}' não é permitido. Use uma branch de desenvolvimento."
           exit 1
         fi
+        echo "Branch '${current_branch}' validada com sucesso."
 
     ensure-clean-working-directory:
       run: |
         if ! git diff --quiet || ! git diff --cached --quiet; then
-          echo "Error: O diretório de trabalho não está limpo. Por favor, faça commit ou stash das alterações."
+          echo "Error: O diretório de trabalho contém mudanças não commitadas. Faça commit ou stash antes de prosseguir."
           exit 1
         fi
+        echo "O diretório de trabalho está limpo."
 
     update-develop:
       run: |
+        echo "Atualizando branch 'develop'..."
         if ! git rev-parse --verify develop >/dev/null 2>&1; then
           echo "A branch 'develop' não existe localmente. Criando a branch 'develop'..."
           if ! git checkout -b develop; then
@@ -38,42 +42,56 @@ pre-push:
         fi
 
         if git ls-remote --heads origin develop | grep develop >/dev/null 2>&1; then
+          echo "Sincronizando branch 'develop' com o repositório remoto..."
           if ! git pull origin develop --rebase; then
-            echo "Error: Não foi possível atualizar a branch 'develop' com a remota."
+            echo "Error: Não foi possível atualizar a branch 'develop' com o repositório remoto. Verifique conflitos de rebase."
             exit 1
           fi
+          echo "Branch 'develop' atualizada com sucesso."
         else
-          echo "A branch 'develop' não existe no repositório remoto. Pulando o pull."
+          echo "A branch 'develop' não existe no repositório remoto. Pulando a atualização."
         fi
+
+    check-for-pending-merges:
+      run: |
+        echo "Verificando se há merges pendentes na branch atual..."
+        if ! git merge-base --is-ancestor develop HEAD; then
+          echo "Error: Existem mudanças na branch 'develop' que ainda não foram integradas à sua branch. Faça o rebase antes de continuar."
+          exit 1
+        fi
+        echo "Sua branch está sincronizada com 'develop'."
 
     rebase-current-branch:
       run: |
         current_branch=$(git rev-parse --abbrev-ref HEAD)
         if [ "$current_branch" != "develop" ]; then
+          echo "Iniciando rebase da branch '${current_branch}' com 'develop'..."
           if ! git rebase develop; then
-            echo "Error: O rebase da branch 'develop' na branch '${current_branch}' falhou. Por favor, resolva os conflitos de merge e continue o rebase."
+            echo "Error: Conflitos durante o rebase. Resolva os conflitos e continue com 'git rebase --continue'."
             exit 1
           fi
+          echo "Rebase bem-sucedido da branch '${current_branch}' na 'develop'."
         else
-          echo "A branch atual está em 'develop'. Pulando rebase."
+          echo "A branch atual é 'develop'. Pulando o rebase."
         fi
 
     push-current-branch:
       run: |
         current_branch=$(git rev-parse --abbrev-ref HEAD)
         if [ "$current_branch" != "develop" ]; then
+          echo "Realizando push da branch '${current_branch}'..."
           if ! git push origin "$current_branch"; then
-            echo "Error: O push da branch '${current_branch}' falhou."
+            echo "Error: O push da branch '${current_branch}' falhou. Verifique o status do repositório remoto e tente novamente."
             exit 1
           fi
+          echo "Push bem-sucedido da branch '${current_branch}'."
         else
-          echo "A branch atual está em 'develop'. Pulando push."
+          echo "A branch atual é 'develop'. Pulando o push."
         fi
 
-
 pre-commit:
-  parallel: true
+  parallel: false
   commands:
     tsc:
       tags: ci
-      run: echo "tsc"
+      run: echo "Executando tsc..."

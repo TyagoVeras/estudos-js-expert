@@ -4,6 +4,7 @@ pre-push:
   commands:
     check-branch:
       run: |
+        set -e
         current_branch=$(git rev-parse --abbrev-ref HEAD)
         PROTECTED_BRANCHES=("release" "master" "main" "uat" "develop")
         if [[ " ${PROTECTED_BRANCHES[@]} " =~ " ${current_branch} " ]]; then
@@ -11,9 +12,11 @@ pre-push:
           exit 1
         fi
         echo "Branch '${current_branch}' validada com sucesso."
+      stage_fixed: true
 
     ensure-clean-working-directory:
       run: |
+        set -e
         if ! git diff --quiet || ! git diff --cached --quiet; then
           echo "Error: O diretório de trabalho contém mudanças não commitadas. Faça commit ou stash antes de prosseguir."
           exit 1
@@ -22,6 +25,7 @@ pre-push:
 
     update-develop:
       run: |
+        set -e
         if ! git rev-parse --verify develop >/dev/null 2>&1; then
           echo "A branch 'develop' não existe localmente. Criando a branch 'develop'..."
           if ! git checkout -b develop; then
@@ -44,6 +48,7 @@ pre-push:
 
     rebase-current-branch:
       run: |
+        set -e
         current_branch=$(git rev-parse --abbrev-ref HEAD)
         if [ "$current_branch" != "develop" ]; then
           echo "Iniciando rebase da branch '${current_branch}' com 'develop'..."
@@ -58,6 +63,7 @@ pre-push:
 
     merge-current-branch:
       run: |
+        set -e
         current_branch=$(git rev-parse --abbrev-ref HEAD)
         if [ "$current_branch" != "develop" ]; then
           echo "Iniciando merge da branch '${current_branch}' com 'develop'..."
@@ -72,6 +78,7 @@ pre-push:
 
     push-current-branch:
       run: |
+        set -e
         current_branch=$(git rev-parse --abbrev-ref HEAD)
         echo "Realizando push da branch '${current_branch}'..."
         if ! git push origin "$current_branch"; then

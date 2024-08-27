@@ -69,8 +69,6 @@ pre-push:
         else
           echo "A branch atual é 'develop'. Pulando o merge."
         fi
-      # exit if the merge is successful
-      exit: 1
 
     push-current-branch:
       run: |

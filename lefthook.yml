@@ -15,12 +15,25 @@ pre-push:
           exit 1
         fi
 
+    ensure-clean-working-directory:
+      run: |
+        if ! git diff --quiet || ! git diff --cached --quiet; then
+          echo "Error: O diretório de trabalho não está limpo. Por favor, faça commit ou stash das alterações."
+          exit 1
+        fi
+
     update-develop:
       run: |
         if ! git rev-parse --verify develop >/dev/null 2>&1; then
-          echo "A branch 'develop' não existe. Criando a branch 'develop'..."
+          echo "A branch 'develop' não existe localmente. Criando a branch 'develop'..."
           if ! git checkout -b develop; then
-            echo "Error: Não foi possível criar a branch 'develop'."
+            echo "Error: Não foi possível criar a branch 'develop' localmente."
+            exit 1
+          fi
+
+          # Tenta fazer push da branch develop para o repositório remoto
+          if ! git push --set-upstream origin develop; then
+            echo "Error: Não foi possível criar a branch 'develop' no repositório remoto."
             exit 1
           fi
         else
@@ -30,24 +43,30 @@ pre-push:
           fi
         fi
 
-        if ! git pull origin develop; then
+        # Puxa as últimas alterações da branch develop, se ela existir no remoto
+        if ! git pull origin develop --rebase; then
           echo "Error: Não foi possível atualizar a branch 'develop' com a remota."
           exit 1
         fi
 
-    merge-develop:
+    rebase-current-branch:
       run: |
         if ! git checkout $current_branch; then
           echo "Error: Não foi possível voltar para a branch atual '${current_branch}'."
           exit 1
         fi
 
-        if ! git merge --no-ff --no-edit develop; then
-          echo "Error: Não foi possível realizar o merge da branch 'develop' na branch '${current_branch}'."
+        if ! git rebase develop; then
+          echo "Error: O rebase da branch 'develop' na branch '${current_branch}' falhou. Por favor, resolva os conflitos de merge e continue o rebase."
           exit 1
         fi
 
-
+    push-current-branch:
+      run: |
+        if ! git push; then
+          echo "Error: Não foi possível fazer push da branch '${current_branch}' para o repositório remoto."
+          exit 1
+        fi
 
 pre-commit:
   parallel: true

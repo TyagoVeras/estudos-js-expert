@@ -1,0 +1,19 @@
+nvm install 20 -> instala a versao 20
+nvm uninstall 20 -> desinstala a versao 20
+nvm ls -> lista as versoes instaladas
+nvm ls-remote -> lista as versoes disponiveis
+nvm current -> mostra a versao atual
+
+nvm use 20 -> usa a versao 20 no terminal
+nvm alias default 20 -> define a versao 20 como padrao para o sistema
+
+node -v > .nvmrc -> cria um arquivo .nvmrc com a versao do node atual
+nvm use -> usa a versao do node que esta no arquivo .nvmrc
+
+nvm install-latest-npm -> atualiza o npm para a ultima versao
+
+
+Uma boa pratica é sempre colocar no pacakge.json a versao do node que esta sendo usada no projeto
+"engines": {
+    "node": "20.0.0"
+}

@@ -1,0 +1,23 @@
+{
+  "name": "aula01-mocks",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx --watch src/index.ts",
+    "build": "tsup src/index.ts",
+    "test:watch": "vitest --watch",
+    "test:run": "vitest",
+    "test:coverage": "vitest --coverage"
+  },
+  "keywords": [],
+  "author": "@tyagoveras",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.5.1",
+    "tsup": "^8.2.4",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}

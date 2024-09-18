@@ -12,7 +12,6 @@ pre-push:
           exit 1
         fi
         echo "Branch '${current_branch}' validada com sucesso."
-      stage_fixed: true
 
     ensure-clean-working-directory:
       run: |
@@ -28,22 +27,11 @@ pre-push:
         set -e
         if ! git rev-parse --verify develop >/dev/null 2>&1; then
           echo "A branch 'develop' não existe localmente. Criando a branch 'develop'..."
-          if ! git checkout -b develop; then
-            echo "Error: Não foi possível criar a branch 'develop' localmente."
-            exit 1
-          fi
-
-          if ! git push --set-upstream origin develop; then
-            echo "Error: Não foi possível criar a branch 'develop' no repositório remoto."
-            exit 1
-          fi
+          git checkout -b develop
+          git push --set-upstream origin develop
         else
           echo "Atualizando a branch 'develop'..."
-          if ! git pull origin develop --rebase; then
-            echo "Error: Não foi possível atualizar a branch 'develop' com o repositório remoto. Verifique conflitos de rebase."
-            exit 1
-          fi
-          echo "Branch 'develop' atualizada com sucesso."
+          git pull origin develop --rebase || { echo "Error: Falha ao atualizar 'develop'."; exit 1; }
         fi
 
     rebase-current-branch:
@@ -52,40 +40,15 @@ pre-push:
         current_branch=$(git rev-parse --abbrev-ref HEAD)
         if [ "$current_branch" != "develop" ]; then
           echo "Iniciando rebase da branch '${current_branch}' com 'develop'..."
-          if ! git rebase develop; then
-            echo "Error: Conflitos durante o rebase. Resolva os conflitos e continue com 'git rebase --continue'."
-            exit 1
-          fi
-          echo "Rebase bem-sucedido da branch '${current_branch}' na 'develop'."
-        else
-          echo "A branch atual é 'develop'. Pulando o rebase."
+          git rebase develop || { echo "Error: Conflitos durante o rebase."; exit 1; }
         fi
 
-    merge-current-branch:
-      run: |
-        set -e
-        current_branch=$(git rev-parse --abbrev-ref HEAD)
-        if [ "$current_branch" != "develop" ]; then
-          echo "Iniciando merge da branch '${current_branch}' com 'develop'..."
-          if ! git merge develop; then
-            echo "Error: Conflitos durante o merge. Resolva os conflitos e finalize o merge com 'git merge --continue'."
-            exit 1
-          fi
-          echo "Merge bem-sucedido da branch '${current_branch}' com 'develop'."
-        else
-          echo "A branch atual é 'develop'. Pulando o merge."
-        fi
-
-    push-current-branch:
-      run: |
-        set -e
-        current_branch=$(git rev-parse --abbrev-ref HEAD)
-        echo "Realizando push da branch '${current_branch}'..."
-        if ! git push origin "$current_branch"; then
-          echo "Error: O push da branch '${current_branch}' falhou. Verifique o status do repositório remoto e tente novamente."
-          exit 1
-        fi
-        echo "Push bem-sucedido da branch '${current_branch}'."
+push-current-branch:
+  run: |
+    set -e
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    echo "Realizando push da branch '${current_branch}' com timeout de 120 segundos..."
+    timeout 120 git push origin "$current_branch" || { echo "Error: O push falhou ou excedeu o tempo limite."; exit 1; }
 
 pre-commit:
   parallel: false

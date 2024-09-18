@@ -1,0 +1,22 @@
+{
+  "name": "aula03-spies",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx ./src/index.ts",
+    "build": "tsup ./src/index.ts",
+    "test:watch": "vitest --watch",
+    "test": "vitest"
+  },
+  "keywords": [],
+  "author": "@tyagoveras",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.5.4",
+    "tsup": "^8.2.4",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2",
+    "vitest": "^2.0.5"
+  }
+}

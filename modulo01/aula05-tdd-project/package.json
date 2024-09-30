@@ -1,0 +1,30 @@
+{
+  "name": "aula05-tdd-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx --watch src/index.ts",
+    "test": "vitest",
+    "seed": "tsx src/seed",
+    "test:watch": "vitest --watch",
+    "build": "tsup ./src/index.ts"
+  },
+  "keywords": [],
+  "author": "tyagoveras",
+  "license": "ISC",
+  "type": "module",
+  "engines": {
+    "node": "v21.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "tsup": "^8.3.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^9.0.2"
+  }
+}
